@@ -1,36 +1,54 @@
 <template>
-    <default-field :field="field">
+    <default-field :field="field" :errors="errors">
         <template slot="field">
-            <div class="relative">
-                <input
-                    type="text"
-                    v-model="value"
+            <input
                     class="w-full form-control form-input form-input-bordered"
-                    :class="errorClasses"
-                    :placeholder="field.name"
-                />
-
-                <charcounter :value="value" :max-chars="field.maxChars" :warning-threshold="field.warningAt"></charcounter>
-            </div>
-
-            <p v-if="hasError" class="my-2 text-danger">
-                {{ firstError }}
-            </p>
+                    :id="field.attribute"
+                    :dusk="field.attribute"
+                    v-model="value"
+                    v-bind="extraAttributes"
+                    :disabled="isReadonly"
+            />
+            <charcounter :value="value" :max-chars="field.maxChars" :warning-threshold="field.warningAt"></charcounter>
         </template>
     </default-field>
 </template>
 
 <script>
-    import {FormField, HandlesValidationErrors} from 'laravel-nova';
+    import { FormField, HandlesValidationErrors } from 'laravel-nova';
     import Charcounter from '../Charcounter';
 
     export default {
-        mixins: [FormField, HandlesValidationErrors],
-
-        props: ['resourceName', 'resourceId', 'field'],
+        mixins: [HandlesValidationErrors, FormField],
 
         components: {
             Charcounter
-        }
+        },
+
+        computed: {
+            defaultAttributes() {
+                return {
+                    type: this.field.type || 'text',
+                    min: this.field.min,
+                    max: this.field.max,
+                    step: this.field.step,
+                    pattern: this.field.pattern,
+                    placeholder: this.field.placeholder || this.field.name,
+                    class: this.errorClasses,
+                }
+            },
+
+            extraAttributes() {
+                const attrs = this.field.extraAttributes
+
+                return {
+                    // Leave the default attributes even though we can now specify
+                    // whatever attributes we like because the old number field still
+                    // uses the old field attributes
+                    ...this.defaultAttributes,
+                    ...attrs,
+                }
+            },
+        },
     }
 </script>
